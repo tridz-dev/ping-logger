@@ -46,7 +46,24 @@ To compile the Python script into an executable:
 
 ---
 
-#### 4. Running the Script on Linux
+#### 4. Modify the `ping.env.example` File
+Before installing the script as a service, you need to modify the `ping.env.example` file to configure the environment variables.
+
+1. Open the `dist/ping.env.example` file in a text editor.
+   
+2. Set the appropriate values for the environment variables:
+
+   ```env
+   DNS=8.8.4.4         # Set your DNS server (defaults to 8.8.8.8 if not set)
+   GATEWAY=192.168.0.1 # Set your gateway IP (defaults to 192.168.1.1 if not set)
+   EXTRA=1.1.1.1      # Set an additional server IP or leave blank to skip
+   ```
+
+3. Save the modified file as `ping.env` in the same directory as the executable (`dist/ping_script.exe`).
+
+---
+
+#### 5. Running the Script on Linux
 To run the script directly on Linux:
 
 1. Ensure the environment is active:
@@ -61,44 +78,51 @@ To run the script directly on Linux:
 
 ---
 
-#### 5. Environment Variables (`ping.env`)
-Place the `ping.env` file in the same directory as the script or the compiled executable. The file should look like this:
+#### 6. Running the Script as a Windows Service with NSSM
 
-```env
-DNS=8.8.4.4
-GATEWAY=192.168.0.1
-EXTRA=1.1.1.1
-```
+To run the compiled executable (`ping_script.exe`) as a service on Windows using **NSSM**:
 
-- **Defaults**:
-  - `DNS` → Defaults to `8.8.8.8` if not set.
-  - `GATEWAY` → Defaults to `192.168.1.1` if not set.
-  - `EXTRA` → Skipped if not set.
+1. **Download and Install NSSM**:
+   - Go to the [NSSM official website](https://nssm.cc/download) to download the appropriate version for your system (32-bit or 64-bit).
+   - Extract and place the `nssm.exe` file in a directory of your choice, or add it to your system’s `PATH`.
 
----
+2. **Install the Service**:
+   Open a Command Prompt with administrative privileges and run the following command to install the service:
 
-### Commands Summary
+   ```cmd
+   nssm install tridz-ping "C:\path\to\ping_script.exe"
+   ```
 
-#### For Windows:
-```cmd
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-pyinstaller --onefile ping_script.py
-```
+   Replace `"C:\path\to\ping_script.exe"` with the actual path to your `ping_script.exe` file.
 
-#### For Linux:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python ping_script.py
-```
+3. **Configure the Service**:
+   - In the NSSM configuration window, set the **Environment Variables** by clicking on the **Environment** tab.
+   - Add the `ping.env` file as a **variable** to the environment (if the script needs environment variables set).
+     - For example:
+       - **Variable Name**: `ping.env`
+       - **Value**: `C:\path\to\ping.env`
+   - Optionally, configure other parameters like the **Output Log** to capture script logs.
 
-#### Running the Executable on Windows:
-```cmd
-ping_script.exe
-```
+4. **Start the Service**:
+   To start the service, run:
+
+   ```cmd
+   nssm start tridz-ping
+   ```
+
+5. **Stop the Service**:
+   To stop the service, run:
+
+   ```cmd
+   nssm stop tridz-ping
+   ```
+
+6. **Uninstall the Service**:
+   To remove the service, run:
+
+   ```cmd
+   nssm remove tridz-ping
+   ```
 
 ---
 
