@@ -1,0 +1,34 @@
+venv/*
+.venv
+ping.log
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+env/
+venv/
+ENV/
+*.env
+
+# PyInstaller build artifacts
+build/
+*.spec
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Other backup or temp files
+*.bak
+*.swp
+*.tmp
