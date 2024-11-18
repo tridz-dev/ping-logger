@@ -7,6 +7,7 @@ on:
       - 'requirements.txt'  # If changes to dependencies should trigger a release
     branches:
       - main  # Ensure it only triggers on the main branch
+  workflow_dispatch:
 
 jobs:
   build:
