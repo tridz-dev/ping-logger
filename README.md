@@ -42,7 +42,7 @@ To compile the Python script into an executable:
    ```
 
 3. **Locate the Executable**:
-   The compiled executable will be available in the `dist` directory as `ping_script.exe`.
+   The compiled executable will be available in the `dist` directory as `ping.exe`.
 
 ---
 
@@ -59,7 +59,7 @@ Before installing the script as a service, you need to modify the `ping.env.exam
    EXTRA=1.1.1.1      # Set an additional server IP or leave blank to skip
    ```
 
-3. Save the modified file as `ping.env` in the same directory as the executable (`dist/ping_script.exe`).
+3. Save the modified file as `ping.env` in the same directory as the executable (`dist/ping.exe`).
 
 ---
 
@@ -80,7 +80,7 @@ To run the script directly on Linux:
 
 #### 6. Running the Script as a Windows Service with NSSM
 
-To run the compiled executable (`ping_script.exe`) as a service on Windows using **NSSM**:
+To run the compiled executable (`ping.exe`) as a service on Windows using **NSSM**:
 
 1. **Download and Install NSSM**:
    - Go to the [NSSM official website](https://nssm.cc/download) to download the appropriate version for your system (32-bit or 64-bit).
@@ -90,34 +90,27 @@ To run the compiled executable (`ping_script.exe`) as a service on Windows using
    Open a Command Prompt with administrative privileges and run the following command to install the service:
 
    ```cmd
-   nssm install tridz-ping "C:\path\to\ping_script.exe"
+   nssm install tridz-ping "C:\path\to\ping.exe"
    ```
 
-   Replace `"C:\path\to\ping_script.exe"` with the actual path to your `ping_script.exe` file.
+   Replace `"C:\path\to\ping.exe"` with the actual path to your `ping.exe` file.
+   The script expects ping.env in the same path
 
-3. **Configure the Service**:
-   - In the NSSM configuration window, set the **Environment Variables** by clicking on the **Environment** tab.
-   - Add the `ping.env` file as a **variable** to the environment (if the script needs environment variables set).
-     - For example:
-       - **Variable Name**: `ping.env`
-       - **Value**: `C:\path\to\ping.env`
-   - Optionally, configure other parameters like the **Output Log** to capture script logs.
-
-4. **Start the Service**:
+3. **Start the Service**:
    To start the service, run:
 
    ```cmd
    nssm start tridz-ping
    ```
 
-5. **Stop the Service**:
+4. **Stop the Service**:
    To stop the service, run:
 
    ```cmd
    nssm stop tridz-ping
    ```
 
-6. **Uninstall the Service**:
+5. **Uninstall the Service**:
    To remove the service, run:
 
    ```cmd
