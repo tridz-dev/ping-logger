@@ -1,128 +1,295 @@
-### **Setup Instructions**
+# Network Ping Monitor - Setup Guide
 
-#### 1. Create a Virtual Environment
-A virtual environment isolates dependencies for this project.
+A Python-based network monitoring tool that continuously pings multiple IP addresses and logs the results with automatic log rotation.
 
-**Windows:**
-```cmd
-python -m venv venv
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
-venv\Scripts\activate
-Set-ExecutionPolicy Restricted
+## Features
+
+- Monitor up to 6 IP addresses simultaneously (DNS, Gateway, and 4 custom IPs)
+- Automatic log rotation (keeps 7 days of hourly logs)
+- Configurable via environment variables
+- Runs as a systemd service for continuous monitoring
+- Detailed logging with timestamps and response times
+
+## Requirements
+
+### System Requirements
+- Linux operating system (Ubuntu/Debian recommended)
+- Python 3.10 or higher
+- Root/sudo access (required for ICMP ping operations)
+
+### Python Dependencies
+- `ping3` - For sending ICMP ping requests
+- `python-dotenv` - For loading environment variables from .env file
+
+## Installation
+
+### 1. Install System Dependencies
+
+```bash
+# Update package list
+sudo apt update
+
+# Install Python 3 and venv support
+sudo apt install python3 python3-venv python3-pip -y
 ```
 
-**Linux:**
+### 2. Setup Project Directory
+
 ```bash
+# Create project directory
+mkdir -p ~/ping
+cd ~/ping
+
+# Create virtual environment
 python3 -m venv venv
+
+# Activate virtual environment
 source venv/bin/activate
+
+# Install Python dependencies
+pip install ping3 python-dotenv
+
+# Deactivate virtual environment
+deactivate
 ```
 
----
+### 3. Clone this repo master branch 
 
-#### 2. Install Dependencies
-Install the required libraries using `requirements.txt`.
+Clone this repo under `/home/YOUR_USERNAME/ping/` with the monitoring script.
+
+### 4. update Environment Configuration
+
+open file named `ping.env` in the same directory:
+
+```env
+DNS=1.1.1.1
+GATEWAY=192.168.10.1
+EXTRA=8.8.8.8
+EXTRA2=192.168.1.10
+EXTRA3=192.168.1.20
+EXTRA4=192.168.1.30
+```
+
+**Configuration Options:**
+- `DNS` - Primary DNS server to monitor (default: 1.1.1.1)
+- `GATEWAY` - Your network gateway/router (default: 192.168.10.1)
+- `EXTRA` - Optional additional IP address
+- `EXTRA2` - Optional additional IP address
+- `EXTRA3` - Optional additional IP address
+- `EXTRA4` - Optional additional IP address
+
+### 5. Test the Script
 
 ```bash
-pip install -r requirements.txt
+# Navigate to project directory
+cd ~/ping
+
+# Run the script manually (requires sudo for ICMP)
+sudo ./venv/bin/python ping.py
 ```
 
----
+Press `Ctrl+C` to stop. Check that `ping.log` is created in the same directory.
 
-#### 3. Compile the Script into an Executable for Windows
-To compile the Python script into an executable:
+## Running as a System Service
 
-1. **Install PyInstaller**:
-   ```bash
-   pip install pyinstaller
-   ```
+### 1. Create Systemd Service File
 
-2. **Compile the Script**:
-   ```bash
-   pyinstaller --onefile ping.py
-   ```
+```bash
+sudo nano /etc/systemd/system/ping-monitor.service
+```
 
-3. **Locate the Executable**:
-   The compiled executable will be available in the `dist` directory as `ping.exe`.
+Add the following content (replace `YOUR_USERNAME` with your actual username):
 
----
+```ini
+[Unit]
+Description=Network Ping Monitor
+After=network.target
 
-#### 4. Modify the `ping.env.example` File
-Before installing the script as a service, you need to modify the `ping.env.example` file to configure the environment variables.
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/YOUR_USERNAME/ping
+ExecStart=/home/YOUR_USERNAME/ping/venv/bin/python /home/YOUR_USERNAME/ping/ping.py
+Restart=always
+RestartSec=10
 
-1. Open the `dist/ping.env.example` file in a text editor.
-   
-2. Set the appropriate values for the environment variables:
+[Install]
+WantedBy=multi-user.target
+```
 
-   ```env
-   DNS=8.8.4.4         # Set your DNS server (defaults to 8.8.8.8 if not set)
-   GATEWAY=192.168.0.1 # Set your gateway IP (defaults to 192.168.1.1 if not set)
-   EXTRA=1.1.1.1      # Set an additional server IP or leave blank to skip
-   ```
+### 2. Enable and Start the Service
 
-3. Save the modified file as `ping.env` in the same directory as the executable (`dist/ping.exe`).
+```bash
+# Reload systemd to recognize the new service
+sudo systemctl daemon-reload
 
----
+# Enable service to start on boot
+sudo systemctl enable ping-monitor
 
-#### 5. Running the Script on Linux
-To run the script directly on Linux:
+# Start the service
+sudo systemctl start ping-monitor
 
-1. Ensure the environment is active:
-   ```bash
-   source venv/bin/activate
-   ```
+# Check service status
+sudo systemctl status ping-monitor
+```
 
-2. Run the script:
-   ```bash
-   python ping_script.py
-   ```
+## Managing the Service
 
----
+### Service Control Commands
 
-#### 6. Running the Script as a Windows Service with NSSM
+```bash
+# Start the service
+sudo systemctl start ping-monitor
 
-To run the compiled executable (`ping.exe`) as a service on Windows using **NSSM**:
+# Stop the service
+sudo systemctl stop ping-monitor
 
-1. **Download and Install NSSM**:
-   - Go to the [NSSM official website](https://nssm.cc/download) to download the appropriate version for your system (32-bit or 64-bit).
-   - Extract and place the `nssm.exe` file in a directory of your choice, or add it to your system’s `PATH`.
+# Restart the service
+sudo systemctl restart ping-monitor
 
-2. **Install the Service**:
-   Open a Command Prompt with administrative privileges and run the following command to install the service:
+# Check service status
+sudo systemctl status ping-monitor
 
-   ```cmd
-   nssm install tridz-ping "C:\path\to\ping.exe"
-   ```
+# Enable auto-start on boot
+sudo systemctl enable ping-monitor
 
-   Replace `"C:\path\to\ping.exe"` with the actual path to your `ping.exe` file.
-   The script expects ping.env in the same path
+# Disable auto-start on boot
+sudo systemctl disable ping-monitor
+```
 
-3. **Start the Service**:
-   To start the service, run:
+### Viewing Logs
 
-   ```cmd
-   nssm start tridz-ping
-   ```
+```bash
+# View systemd service logs (live)
+sudo journalctl -u ping-monitor -f
 
-4. **Stop the Service**:
-   To stop the service, run:
+# View last 50 lines of service logs
+sudo journalctl -u ping-monitor -n 50
 
-   ```cmd
-   nssm stop tridz-ping
-   ```
+# View the actual ping log file
+tail -f /home/YOUR_USERNAME/ping/ping.log
 
-5. **Uninstall the Service**:
-   To remove the service, run:
+# View ping log with less
+less /home/YOUR_USERNAME/ping/ping.log
+```
 
-   ```cmd
-   nssm remove tridz-ping
-   ```
+## Log Files
 
----
+### Log Location
+- Main log file: `/home/YOUR_USERNAME/ping/ping.log`
+- Rotated logs: `ping.log.YYYY-MM-DD_HH-MM-SS` (automatically created)
 
-### Requirements File Example (`requirements.txt`)
-Ensure the dependencies used in your project are listed. For this script, it might look like this:
+### Log Rotation
+- Logs rotate every hour
+- Keeps 168 hours (7 days) of history
+- Old logs are automatically deleted
+
+### Log Format
+```
+YYYY-MM-DD HH:MM:SS - LEVEL - Message
+```
+
+Example log entries:
+```
+2026-02-02 11:15:30 - INFO - Ping to 1.1.1.1 successful. Response time: 12.45 ms
+2026-02-02 11:15:31 - WARNING - Ping to 192.168.10.1 failed.
+2026-02-02 11:15:32 - ERROR - Error pinging 8.8.8.8: timeout
+```
+
+## Troubleshooting
+
+### Service Won't Start
+
+1. Check service status:
+```bash
+sudo systemctl status ping-monitor
+```
+
+2. View detailed logs:
+```bash
+sudo journalctl -u ping-monitor -n 100
+```
+
+3. Verify Python path in service file matches your installation:
+```bash
+ls -l /home/YOUR_USERNAME/ping/venv/bin/python
+```
+
+### Module Not Found Errors
+
+Ensure packages are installed in the virtual environment:
+```bash
+cd ~/ping
+source venv/bin/activate
+pip list | grep -E "ping3|python-dotenv"
+deactivate
+```
+
+If missing:
+```bash
+source venv/bin/activate
+pip install ping3 python-dotenv
+deactivate
+sudo systemctl restart ping-monitor
+```
+### No Logs Being Created
+
+1. Check working directory permissions:
+```bash
+ls -ld ~/ping
+```
+
+2. Manually create log file:
+```bash
+sudo touch ~/ping/ping.log
+sudo chown root:root ~/ping/ping.log
+```
+
+3. Run script manually to see errors:
+```bash
+cd ~/ping
+sudo ./venv/bin/python ping.py
+```
+## Uninstalling
+
+```bash
+# Stop and disable the service
+sudo systemctl stop ping-monitor
+sudo systemctl disable ping-monitor
+
+# Remove service file
+sudo rm /etc/systemd/system/ping-monitor.service
+
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Remove project directory
+rm -rf ~/ping
+```
+
+## Project Structure
 
 ```
-ping3
-python-dotenv
+~/ping/
+├── ping.py              # Main Python script
+├── ping.env             # Environment configuration
+├── ping.log             # Current log file
+├── ping.log.2026-02-01_* # Rotated log files
+└── venv/                # Virtual environment
+    ├── bin/
+    │   └── python       # Python interpreter
+    └── lib/
+        └── python3.*/
+            └── site-packages/  # Installed packages
 ```
+
+## Support
+
+For issues or questions:
+1. Check the troubleshooting section above
+2. Review systemd logs: `sudo journalctl -u ping-monitor -n 100`
+3. Test the script manually: `sudo ~/ping/venv/bin/python ~/ping/ping.py`
+
+## License
+
+This script is provided as-is for network monitoring purposes.
