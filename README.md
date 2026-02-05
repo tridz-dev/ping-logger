@@ -36,10 +36,6 @@ sudo apt install python3 python3-venv python3-pip -y
 ### 2. Setup Project Directory
 
 ```bash
-# Create project directory
-mkdir -p ~/ping
-cd ~/ping
-
 # Create virtual environment
 python3 -m venv venv
 
@@ -291,5 +287,6 @@ For issues or questions:
 3. Test the script manually: `sudo ~/ping/venv/bin/python ~/ping/ping.py`
 
 ## License
+
 
 This script is provided as-is for network monitoring purposes.
